@@ -1,0 +1,39 @@
+name: Polygon Avail Light CI
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+        # A repository can have up to 10GB of caches.
+        # Check https://github.com/actions/cache for details.
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - uses: actions-rs/toolchain@v1
+        with:
+            # NOTE: Until https://github.com/actions-rs/toolchain/pull/209 is merged,
+            # this should be synced with rust-toolchain.toml file.
+            # After merge, this section should be removed.
+            toolchain: nightly-2022-01-20
+            components: rustfmt, clippy
+            profile: minimal
+
+      - run: cargo fmt --check
+      - run: cargo test
